@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "state-schemas-structured-output"
+version = "0.1.0"
+description = "State schemas structured output project"
+authors = ["Your Name <your@email.com>"]
+packages = [{include = "state_schemas", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langgraph = "*"
+instructor = "*"
+pydantic = ">=2.0"
+click = "*"
+python-dotenv = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
