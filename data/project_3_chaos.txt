@@ -1,0 +1,41 @@
+INVOICE DATA - INTERNAL AUDIT
+----------------------------
+Project: Nebulon-9 Habitat Construction
+Vendor: Orbital Structures LLC
+Primary Contact: info@orbital_structurers.com (Wait, it's info@orbitalstructures.com)
+Tax ID: US-999-0000 (Wait, I think the format for our systems is US-999-8877)
+
+Dates: 
+We broke ground on January 15, 2025. 
+The deadline was February 01, 2025, but that was too fast.
+Let's set the final delivery for March 20, 2025 instead.
+
+Line Items:
+1. Heavy Steel Beams (Category: Hardware)
+   - 5 units at $1,200.00 each. 
+   - I've listed the total as $6,500.00 for some reason? Let's fix that.
+   
+2. Navigation Software License (Category: Software)
+   - 1 license at $4,500.00. 
+   - Note: Software is NOT taxable under local laws.
+   
+3. On-site Labor (Category: Service)
+   - 100 hours at $85.50 per hour.
+   - Total: $8,550.00.
+
+Financial Summary:
+- Tax Rate applied: 10% (0.10)
+- Initial Subtotal: $19,050.00 (Wait, is that right?)
+- Discount applied: $500.00 flat discount for early payment.
+- Tax Amount calculated: $1,455.00
+- Grand Total: $20,000.00 flat.
+
+Notes: 
+Please extract the most accurate data. 
+If the math in the summary contradicts the items, prioritize the item prices.
+Tax should only be applied to Hardware and Services.
+Software is exempt.
+Tax is calculated AFTER the subtotal is summed, but before the discount is taken? 
+No, wait - apply the discount to the subtotal, THEN calculate tax? 
+Actually, just apply tax to the raw taxable subtotal as per standard treaty.
+Final grand total must be Subtotal - Discount + Tax.

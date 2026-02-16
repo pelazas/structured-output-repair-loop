@@ -1,31 +1,57 @@
-from typing import List, Optional
+import re
+from typing import List, Optional, Literal
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator, EmailStr
+
+class VendorInfo(BaseModel):
+    name: str
+    tax_id: str = Field(..., description="Tax ID in format XX-000-0000")
+    email: str = Field(..., description="Contact email for the vendor")
+
+    @field_validator("tax_id")
+    @classmethod
+    def validate_tax_id(cls, v: str) -> str:
+        if not re.match(r"^[A-Z]{2}-\d{3}-\d{4}$", v):
+            raise ValueError("Tax ID must follow format: XX-000-0000 (e.g., US-123-4567)")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if "@" not in v or "." not in v:
+            raise ValueError("Invalid email format")
+        return v
 
 class InvoiceItem(BaseModel):
     description: str
+    category: Literal["Hardware", "Software", "Service", "Other"]
     quantity: int
     unit_price: float
     total: float
-    math_reasoning: str = Field(..., description="Explain the calculation (e.g., '3 units at $500 is $1500')")
+    is_taxable: bool = True
+    math_reasoning: str = Field(..., description="Explain the calculation")
 
     @model_validator(mode="after")
     def validate_item_total(self) -> "InvoiceItem":
         expected_total = self.quantity * self.unit_price
         if abs(self.total - expected_total) > 0.01:
-            raise ValueError(f"Math Error in '{self.description}': Text said {self.total}, but {self.quantity} x {self.unit_price} is {expected_total}. Please use the correct calculated total.")
+            raise ValueError(f"Math Error in '{self.description}': {self.quantity} x {self.unit_price} is {expected_total}, not {self.total}")
         return self
 
 class StructuredOutput(BaseModel):
-    """Model for advanced structured data extraction with math and temporal logic."""
+    """Extreme complexity model with math, tax, vendor validation, and temporal logic."""
     model_config = ConfigDict(extra="forbid")
 
-    project_name: str = Field(..., description="The name of the project")
-    start_date: str = Field(..., description="Project start date (YYYY-MM-DD)")
-    end_date: str = Field(..., description="Project end date (YYYY-MM-DD)")
-    items: List[InvoiceItem] = Field(..., description="List of invoiced items")
-    grand_total: float = Field(..., description="The sum of all item totals")
-    correction_notes: Optional[str] = Field(None, description="Note any discrepancies you had to fix from the raw text")
+    project_name: str
+    vendor: VendorInfo
+    start_date: str
+    end_date: str
+    items: List[InvoiceItem]
+    tax_rate: float = Field(..., description="Tax rate as a decimal (e.g., 0.08 for 8%)")
+    tax_amount: float = Field(..., description="Total tax calculated on taxable items")
+    discount_amount: float = Field(default=0.0, description="Any flat discount applied BEFORE tax")
+    grand_total: float = Field(..., description="Final amount after tax and discounts")
+    correction_notes: Optional[str] = None
 
     @field_validator("start_date", "end_date")
     @classmethod
@@ -41,14 +67,29 @@ class StructuredOutput(BaseModel):
         start = datetime.strptime(self.start_date, "%Y-%m-%d")
         end = datetime.strptime(self.end_date, "%Y-%m-%d")
         if end < start:
-            raise ValueError(f"End date ({self.end_date}) cannot be before start date ({self.start_date})")
+            raise ValueError(f"End date ({self.end_date}) is before start date ({self.start_date})")
         return self
 
     @model_validator(mode="after")
-    def validate_grand_total(self) -> "StructuredOutput":
-        calculated_total = sum(item.total for item in self.items)
-        if abs(self.grand_total - calculated_total) > 0.01:
-            raise ValueError(f"Grand total must be {calculated_total}, but got {self.grand_total}")
+    def validate_financials(self) -> "StructuredOutput":
+        # 1. Calculate taxable and subtotal
+        subtotal = sum(item.total for item in self.items)
+        taxable_subtotal = sum(item.total for item in self.items if item.is_taxable)
+        
+        # 2. Check Tax amount
+        # Formula: (Taxable Subtotal - Discount) * Rate 
+        # (Assuming discount is applied proportionally or to subtotal specifically)
+        # We'll stick to a simpler: (Taxable Subtotal) * Rate
+        expected_tax = taxable_subtotal * self.tax_rate
+        if abs(self.tax_amount - expected_tax) > 0.05:
+            raise ValueError(f"Tax Mismatch: Taxable subtotal is {taxable_subtotal}, at rate {self.tax_rate}, tax should be {expected_tax}, not {self.tax_amount}")
+        
+        # 3. Check Grand Total
+        # Formula: Subtotal - Discount + Tax
+        expected_grand = subtotal - self.discount_amount + self.tax_amount
+        if abs(self.grand_total - expected_grand) > 0.05:
+            raise ValueError(f"Grand Total Mismatch: Subtotal({subtotal}) - Discount({self.discount_amount}) + Tax({self.tax_amount}) should be {expected_grand}, not {self.grand_total}")
+        
         return self
 
 class ExtractorState(BaseModel):

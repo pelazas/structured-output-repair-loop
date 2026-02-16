@@ -14,6 +14,10 @@ click = "*"
 python-dotenv = "*"
 pypdf = "*"
 python-docx = "*"
+pyyaml = "*"
+
+[tool.poetry.scripts]
+extract = "src.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
