@@ -7,12 +7,13 @@ class InvoiceItem(BaseModel):
     quantity: int
     unit_price: float
     total: float
+    math_reasoning: str = Field(..., description="Explain the calculation (e.g., '3 units at $500 is $1500')")
 
     @model_validator(mode="after")
     def validate_item_total(self) -> "InvoiceItem":
         expected_total = self.quantity * self.unit_price
         if abs(self.total - expected_total) > 0.01:
-            raise ValueError(f"Total for '{self.description}' must be {expected_total}, but got {self.total}")
+            raise ValueError(f"Math Error in '{self.description}': Text said {self.total}, but {self.quantity} x {self.unit_price} is {expected_total}. Please use the correct calculated total.")
         return self
 
 class StructuredOutput(BaseModel):
@@ -24,6 +25,7 @@ class StructuredOutput(BaseModel):
     end_date: str = Field(..., description="Project end date (YYYY-MM-DD)")
     items: List[InvoiceItem] = Field(..., description="List of invoiced items")
     grand_total: float = Field(..., description="The sum of all item totals")
+    correction_notes: Optional[str] = Field(None, description="Note any discrepancies you had to fix from the raw text")
 
     @field_validator("start_date", "end_date")
     @classmethod

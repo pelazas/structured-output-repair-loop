@@ -55,7 +55,15 @@ class LLMClient:
                 model="gpt-4o-mini",  # Using a cheaper but capable model
                 response_model=response_model,
                 messages=[
-                    {"role": "system", "content": "You are a precise data extraction assistant."},
+                    {
+                        "role": "system", 
+                        "content": (
+                            "You are a literal data extraction assistant. "
+                            "Extract values EXACTLY as mentioned in the text. "
+                            "Do not perform your own calculations or fix math errors in the source. "
+                            "If the text says 10 * 5 = 60, extract 60."
+                        )
+                    },
                     {"role": "user", "content": prompt}
                 ],
                 max_retries=max_retries
